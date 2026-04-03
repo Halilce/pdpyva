@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas & Python Bilgi Kartı</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --accent: #00d4aa;
+    --accent2: #ff6b35;
+    --accent3: #7c6af7;
+    --text: #e8edf5;
+    --text-dim: #6b7a99;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 11px; color: var(--text-dim); font-family: 'Space Mono', monospace; letter-spacing: 2px; text-transform: uppercase; }
+
+  .stats-bar {
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .stat-chip .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  .tab {
+    padding: 10px 22px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all .2s;
+    background: transparent;
+    color: var(--text-dim);
+  }
+  .tab.active {
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(124,106,247,.35);
+  }
+  .tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ===== OYUN MODU ===== */
+  .game-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+  }
+  .progress-wrap {
+    flex: 1; min-width: 200px;
+  }
+  .progress-info {
+    display: flex; justify-content: space-between;
+    font-size: 12px; font-family: 'Space Mono', monospace;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 4px; background: var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    border-radius: 4px;
+    transition: width .4s ease;
+  }
+
+  .score-display {
+    display: flex; gap: 12px;
+  }
+  .score-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .score-badge.correct { border-color: var(--green); color: var(--green); }
+  .score-badge.wrong { border-color: var(--red); color: var(--red); }
+
+  /* KART */
+  .card-scene {
+    perspective: 1000px;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto 28px;
+    height: 280px;
+  }
+  .card {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .55s cubic-bezier(.4,0,.2,1);
+    cursor: pointer;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+  .card-front {
+    background: var(--surface);
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(124,106,247,.12) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, rgba(0,212,170,.08) 0%, transparent 60%);
+  }
+  .card-back {
+    background: var(--surface2);
+    background-image: radial-gradient(ellipse at 80% 20%, rgba(0,212,170,.15) 0%, transparent 60%),
+                      radial-gradient(ellipse at 20% 80%, rgba(255,107,53,.08) 0%, transparent 60%);
+    transform: rotateY(180deg);
+  }
+
+  .card-label {
+    font-size: 10px; font-family: 'Space Mono', monospace;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 16px;
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 12px;
+  }
+  .card-back .card-label { color: var(--accent); border-color: rgba(0,212,170,.3); }
+
+  .card-text {
+    font-size: 18px; font-weight: 700; line-height: 1.5;
+    color: var(--text);
+  }
+  .card-back .card-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 17px;
+    color: var(--accent);
+  }
+
+  .card-hint {
+    margin-top: 16px;
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+  .card-num {
+    position: absolute; top: 16px; right: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+  }
+
+  /* OYUN BUTONLARI */
+  .game-actions {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .btn {
+    padding: 12px 28px; border-radius: 12px;
+    border: 1px solid var(--border);
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-ghost { background: var(--surface); color: var(--text); }
+  .btn-ghost:hover { background: var(--surface2); border-color: var(--text-dim); }
+  .btn-correct { background: rgba(34,197,94,.12); border-color: var(--green); color: var(--green); }
+  .btn-correct:hover { background: rgba(34,197,94,.22); }
+  .btn-wrong { background: rgba(239,68,68,.12); border-color: var(--red); color: var(--red); }
+  .btn-wrong:hover { background: rgba(239,68,68,.22); }
+  .btn-accent { background: linear-gradient(135deg, var(--accent3), var(--accent)); border: none; color: #fff; }
+  .btn-accent:hover { opacity: .85; }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* SHUFFLE / NAV */
+  .nav-row {
+    display: flex; justify-content: center; align-items: center; gap: 16px;
+  }
+  .nav-btn {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--surface2); border-color: var(--text-dim); }
+  .nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+  /* SONUÇ EKRANI */
+  .result-screen {
+    display: none;
+    text-align: center; padding: 48px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    max-width: 520px; margin: 0 auto;
+  }
+  .result-screen.show { display: block; }
+  .result-emoji { font-size: 64px; margin-bottom: 16px; }
+  .result-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .result-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin: 16px 0;
+  }
+  .result-detail {
+    color: var(--text-dim); font-size: 14px; margin-bottom: 28px;
+  }
+
+  /* ===== TÜM SORULAR MODU ===== */
+  .search-row {
+    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1; min-width: 200px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px;
+    font-family: 'Syne', sans-serif; font-size: 14px; color: var(--text);
+    outline: none; transition: border-color .2s;
+  }
+  .search-input:focus { border-color: var(--accent3); }
+  .search-input::placeholder { color: var(--text-dim); }
+
+  .q-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+  }
+  .q-table thead th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-dim); font-family: 'Space Mono', monospace;
+    text-align: left;
+  }
+  .q-table thead th:first-child { border-radius: 8px 0 0 8px; }
+  .q-table thead th:last-child { border-radius: 0 8px 8px 0; }
+  .q-row {
+    background: var(--surface);
+    transition: background .15s;
+    cursor: default;
+  }
+  .q-row:hover { background: var(--surface2); }
+  .q-row td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .q-row td:first-child {
+    border-left: 1px solid var(--border);
+    border-radius: 10px 0 0 10px;
+    width: 36px; text-align: center;
+    font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim);
+  }
+  .q-row td:last-child {
+    border-right: 1px solid var(--border);
+    border-radius: 0 10px 10px 0;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .q-question { line-height: 1.5; }
+  .q-count {
+    font-size: 12px; color: var(--text-dim); font-family: 'Space Mono', monospace;
+    margin-bottom: 12px;
+  }
+
+  /* flash anim */
+  @keyframes flashGreen {
+    0%{background: rgba(34,197,94,.25)} 100%{background: var(--surface)}
+  }
+  @keyframes flashRed {
+    0%{background: rgba(239,68,68,.25)} 100%{background: var(--surface)}
+  }
+  .flash-correct { animation: flashGreen .6s ease-out; }
+  .flash-wrong { animation: flashRed .6s ease-out; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🐼</div>
+      <div>
+        <div class="logo-text">Pandas & Python</div>
+        <div class="logo-sub">Bilgi Kartı Oyunu</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-chip"><span class="dot" style="background:var(--accent)"></span><span id="totalCount">46</span> Kart</div>
+      <div class="stat-chip"><span class="dot" style="background:var(--accent3)"></span>Toplam Soru</div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('game')">🎮 Oyun Modu</button>
+    <button class="tab" onclick="switchTab('all')">📋 Tüm Sorular</button>
+  </div>
+
+  <!-- ===== OYUN MODU ===== -->
+  <div id="tab-game" class="section active">
+
+    <!-- Sonuç ekranı (başlangıçta gizli) -->
+    <div class="result-screen" id="resultScreen">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <div class="result-title" id="resultTitle">Tebrikler!</div>
+      <div class="result-score" id="resultScore">0/0</div>
+      <div class="result-detail" id="resultDetail"></div>
+      <button class="btn btn-accent" onclick="restartGame()">🔄 Yeniden Başlat</button>
+    </div>
+
+    <!-- Oyun alanı -->
+    <div id="gameArea">
+      <div class="game-header">
+        <div class="progress-wrap">
+          <div class="progress-info">
+            <span id="progressText">Soru 1 / 46</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <div class="score-display">
+          <div class="score-badge correct">✓ <span id="correctCount">0</span></div>
+          <div class="score-badge wrong">✗ <span id="wrongCount">0</span></div>
+        </div>
+      </div>
+
+      <div class="card-scene">
+        <div class="card" id="flashcard" onclick="flipCard()">
+          <div class="card-face card-front">
+            <div class="card-num" id="cardNum">1/46</div>
+            <div class="card-label">❓ SORU</div>
+            <div class="card-text" id="questionText">Yükleniyor...</div>
+            <div class="card-hint">— Cevabı görmek için karta tıkla —</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-num" id="cardNum2">1/46</div>
+            <div class="card-label">💡 CEVAP</div>
+            <div class="card-text" id="answerText">...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-actions" id="actionButtons">
+        <button class="btn btn-ghost" onclick="skipCard()">⏭ Atla</button>
+        <button class="btn btn-correct" id="correctBtn" onclick="markCorrect()" disabled>✓ Bildim</button>
+        <button class="btn btn-wrong" id="wrongBtn" onclick="markWrong()" disabled>✗ Bilmedim</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn" onclick="prevCard()" disabled title="Önceki">‹</button>
+        <button class="btn btn-ghost" onclick="shuffleCards()" style="font-size:13px">🔀 Karıştır</button>
+        <button class="nav-btn" id="nextBtn" onclick="nextCard()" title="Sonraki">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TÜM SORULAR ===== -->
+  <div id="tab-all" class="section">
+    <div class="search-row">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍  Soru veya cevap ara..." oninput="filterTable()">
+    </div>
+    <div class="q-count" id="qCount">46 soru listeleniyor</div>
+    <table class="q-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Soru</th>
+          <th>Cevap</th>
+        </tr>
+      </thead>
+      <tbody id="qTableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const RAW = `Pandas kütüphanesinde bir CSV dosyasını okurken sütun ayırıcısını (separator) belirlemek için hangi parametre kullanılır?,sep
+pd.read_csv fonksiyonunda verilerin başlangıç satırının (header) hangisi olduğunu belirten parametre hangisidir?,header
+CSV okuma esnasında sütun isimlerini manuel olarak tanımlamak için kullanılan parametre hangisidir?,names
+Büyük veri setlerinde sadece belirli sütunları içeri aktarmak için read_csv metoduna hangi argüman geçilir?,usecols
+Okuma aşamasında sütunların veri tiplerini (örneğin 'Yaş' sütunu için 'int32') zorlamak için hangi parametre kullanılır?,dtype
+Dosyanın tamamını okumak yerine sadece ilk 'n' satırını sınırlı olarak okumak için hangi parametre tercih edilir?,nrows
+Türkçe karakterlerin doğru işlenmesi için read_csv fonksiyonunda genellikle hangi karakter kodlaması (encoding) tanımlanmalıdır?,'utf-8'
+Bir sütunu otomatik olarak tarih (datetime) formatına dönüştürmek için kullanılan read_csv parametresi nedir?,parse_dates
+DataFrame içindeki 'Yaş' sütunu 25'ten büyük olan satırları getiren filtreleme komutu nasıldır?,df[df['Yaş'] > 25]
+df.to_csv metodunda satır indekslerinin dosyaya yazılmasını engellemek için kullanılan ayar nedir?,index=False
+Verileri belirli bir kategoriye (örneğin 'departman') göre gruplara ayıran Pandas metodu hangisidir?,groupby()
+Gruplandırılmış veriler üzerinde ortalama (mean) ve sayım (count) gibi özet hesaplamalar yapmaya yarayan metod nedir?,agg()
+Named Aggregation yapısında 'ort_maas = (maas mean)' ifadesindeki 'mean' argümanı neyi temsil eder?,Uygulanacak matematiksel işlem olan ortalamayı.
+Gruplama işlemi sonrası indeks haline gelen kategorik sütunu tekrar normal bir sütun yapmak için hangi metod çağrılır?,reset_index()
+pd.pivot_table fonksiyonunda özetlenmek (hesaplanmak) istenen sayısal değeri belirleyen parametre hangisidir?,values
+Pivot tabloda satır başlıklarını (rows) oluşturan anahtar parametre nedir?,index
+Pivot tabloda sütun başlıklarını (columns) belirleyen parametre hangisidir?,columns
+Pivot tablo değerlerinin nasıl birleştirileceğini (ortalama toplam vb.) tayin eden parametre nedir?,aggfunc
+Pivot tabloda eşleşmeyen kombinasyonlar sonucu oluşan eksik değerleri (NaN) belirli bir sayıyla dolduran parametre nedir?,fill_value
+CSV çıktısını Excel'in Türkçe karakterlerle hatasız açabilmesi için kullanılan özel kodlama (encoding) tipi nedir?,'utf-8-sig'
+Birden fazla DataFrame raporunu aynı Excel dosyasında farklı sayfalara yazmak için hangi nesne kullanılır?,pd.ExcelWriter
+ExcelWriter nesnesinde Excel dosyası oluşturma motorunu belirten parametre nedir?,engine
+to_excel metodunda verinin yazılacağı sekme adını belirleyen argüman hangisidir?,sheet_name
+DataFrame'in ilk 5 satırını ekrana basan temel metod nedir?,head()
+Pandas kütüphanesinin isminin kökeni olan terim hangisidir?,Panel Data
+Büyük DataFrame'lerin ortasındaki satırları gizlemeden tamamını metin olarak döndüren metod nedir?,to_string()
+Python'da bir değişkene (örn. x) 5 değerini atamanın en temel syntax'ı nasıldır?,x = 5
+Python'da yorum satırı eklemek için satır başına hangi karakter konulur?,#
+W3Schools'a göre Pandas'ta verideki mükerrer kayıtları temizlemek için kullanılan bölüm başlığı nedir?,Removing Duplicates
+Veri setindeki değişkenler arasındaki ilişki gücünü ölçmeye yarayan Pandas özelliği nedir?,Correlations
+Pandas'ta verileri grafiksel olarak temsil etmeye yarayan özellik nedir?,Plotting
+pd.read_csv içinde 'header=0' ayarı ne anlama gelir?,Dosyanın ilk satırının sütun başlıkları olarak kullanılacağı.
+Python dosya işlemlerinde bir dosyayı okumak yazmak veya oluşturmak için kullanılan ana fonksiyon nedir?,open()
+Python'da paketleri yüklemek ve yönetmek için kullanılan araç hangisidir?,PIP
+Hataları yönetmek ve programın çökmesini engellemek için kullanılan Python yapısı nedir?,try...except
+personel.csv dosyasında çalışanların işe giriş tarihlerini tutan sütunun adı nedir?,baslangic_tarihi
+personel.csv verisinde 'maas' sütunundaki en yüksek değer hangi personele aittir?,Halil Arslan (77000)
+Veri setinde bir gruptaki eleman sayısını hesaplamak için agg() içinde hangi istatistiksel anahtar kelime kullanılır?,'count'
+Python'da bir fonksiyonu 'def' anahtar kelimesiyle tanımlarken kullanılan yapıya ne ad verilir?,Function (Fonksiyon)
+Pandas'ta bir DataFrame'in satır ve sütun sayısını (boyutlarını) veren özellik hangisidir?,shape
+ExcelWriter kullanırken 'with' bloğunun tercih edilmesinin temel teknik sebebi nedir?,Dosya yazma işlemi bittiğinde dosyanın otomatik ve güvenli bir şekilde kapatılmasını sağlamak.
+personel.csv verisine göre 'IT' departmanında çalışan toplam kaç personel bulunmaktadır?,4
+Python'da bir listenin (list) sonuna yeni bir eleman eklemek için hangi metod kullanılır?,append()
+Pandas'ın üzerinde inşa edildiği ve bilimsel hesaplamalar için kullanılan temel kütüphane nedir?,NumPy
+df.to_excel(writer sheet_name='Ham_Veriler' index=False) komutunda 'index=False' argümanı ne işe yarar?,Excel dosyasına 0'dan başlayan satır numaralarının yazılmamasını sağlar.
+personel.csv dosyasındaki 'performans_puani' sütununun veri tipi (dtype) ne olmalıdır?,Float (Ondalıklı sayı)
+read_csv metodunda 'parse_dates' parametresi kullanılmazsa tarih içeren sütunlar hangi tipte okunur?,Object (Metin/String)`;
+
+let cards = RAW.trim().split('\n').map((line, i) => {
+  const idx = line.lastIndexOf(',');
+  return {
+    q: line.substring(0, idx).trim(),
+    a: line.substring(idx + 1).trim(),
+    id: i
+  };
+});
+
+let shuffled = [...cards];
+let current = 0;
+let correct = 0, wrong = 0;
+let flipped = false;
+let answered = new Set();
+let skipped = new Set();
+
+// Build table
+function buildTable(data) {
+  const tbody = document.getElementById('qTableBody');
+  tbody.innerHTML = data.map((c, i) => `
+    <tr class="q-row">
+      <td>${i + 1}</td>
+      <td class="q-question">${escHtml(c.q)}</td>
+      <td>${escHtml(c.a)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('qCount').textContent = `${data.length} soru listeleniyor`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = cards.filter(c =>
+    c.q.toLowerCase().includes(q) || c.a.toLowerCase().includes(q)
+  );
+  buildTable(filtered);
+}
+
+// TABS
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// GAME
+function loadCard(idx) {
+  const card = shuffled[idx];
+  flipped = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('questionText').textContent = card.q;
+  document.getElementById('answerText').textContent = card.a;
+  document.getElementById('cardNum').textContent = `${idx+1}/${shuffled.length}`;
+  document.getElementById('cardNum2').textContent = `${idx+1}/${shuffled.length}`;
+  document.getElementById('progressText').textContent = `Soru ${idx+1} / ${shuffled.length}`;
+  const pct = Math.round(((answered.size + skipped.size) / shuffled.length) * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('correctBtn').disabled = true;
+  document.getElementById('wrongBtn').disabled = true;
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx === shuffled.length - 1;
+}
+
+function flipCard() {
+  flipped = !flipped;
+  document.getElementById('flashcard').classList.toggle('flipped', flipped);
+  if (flipped && !answered.has(current) && !skipped.has(current)) {
+    document.getElementById('correctBtn').disabled = false;
+    document.getElementById('wrongBtn').disabled = false;
+  }
+}
+
+function markCorrect() {
+  if (answered.has(current)) return;
+  answered.add(current);
+  correct++;
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('correctBtn').disabled = true;
+  document.getElementById('wrongBtn').disabled = true;
+  document.getElementById('flashcard').classList.add('flash-correct');
+  setTimeout(() => document.getElementById('flashcard').classList.remove('flash-correct'), 600);
+  updateProgress();
+  setTimeout(autoNext, 700);
+}
+
+function markWrong() {
+  if (answered.has(current)) return;
+  answered.add(current);
+  wrong++;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('correctBtn').disabled = true;
+  document.getElementById('wrongBtn').disabled = true;
+  document.getElementById('flashcard').classList.add('flash-wrong');
+  setTimeout(() => document.getElementById('flashcard').classList.remove('flash-wrong'), 600);
+  updateProgress();
+  setTimeout(autoNext, 700);
+}
+
+function skipCard() {
+  if (!answered.has(current)) skipped.add(current);
+  updateProgress();
+  autoNext();
+}
+
+function autoNext() {
+  if (answered.size + skipped.size >= shuffled.length) {
+    showResult(); return;
+  }
+  // find next unanswered
+  let next = current + 1;
+  while (next < shuffled.length && (answered.has(next) || skipped.has(next))) next++;
+  if (next < shuffled.length) {
+    current = next; loadCard(current);
+  } else {
+    // try from start
+    next = 0;
+    while (next < shuffled.length && (answered.has(next) || skipped.has(next))) next++;
+    if (next < shuffled.length) { current = next; loadCard(current); }
+    else showResult();
+  }
+}
+
+function nextCard() {
+  if (current < shuffled.length - 1) { current++; loadCard(current); }
+}
+function prevCard() {
+  if (current > 0) { current--; loadCard(current); }
+}
+
+function updateProgress() {
+  const done = answered.size + skipped.size;
+  const pct = Math.round((done / shuffled.length) * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `Soru ${current+1} / ${shuffled.length}`;
+}
+
+function shuffleCards() {
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  correct = 0; wrong = 0; current = 0;
+  answered.clear(); skipped.clear();
+  document.getElementById('correctCount').textContent = 0;
+  document.getElementById('wrongCount').textContent = 0;
+  loadCard(0);
+}
+
+function showResult() {
+  document.getElementById('gameArea').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.classList.add('show');
+  const total = answered.size;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById('resultScore').textContent = `${correct}/${total}`;
+  document.getElementById('resultDetail').textContent =
+    `${total} soruya cevap verdin — ${skipped.size} soru atlandı. Başarı oranı: %${pct}`;
+  if (pct >= 80) {
+    document.getElementById('resultEmoji').textContent = '🏆';
+    document.getElementById('resultTitle').textContent = 'Mükemmel!';
+  } else if (pct >= 50) {
+    document.getElementById('resultEmoji').textContent = '👍';
+    document.getElementById('resultTitle').textContent = 'İyi İş!';
+  } else {
+    document.getElementById('resultEmoji').textContent = '📚';
+    document.getElementById('resultTitle').textContent = 'Biraz daha çalış!';
+  }
+}
+
+function restartGame() {
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('gameArea').style.display = 'block';
+  correct = 0; wrong = 0; current = 0;
+  answered.clear(); skipped.clear();
+  document.getElementById('correctCount').textContent = 0;
+  document.getElementById('wrongCount').textContent = 0;
+  loadCard(0);
+}
+
+// Init
+buildTable(cards);
+loadCard(0);
+</script>
+</body>
+</html>
