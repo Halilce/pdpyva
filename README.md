@@ -2,6 +2,7 @@
 
 > W3Schools Python & Pandas eğitim içerikleri temel alınarak hazırlanmış kapsamlı uygulama rehberi.  
 > Kapsam: Nesne Yönelimli Programlama · CSV İşlemleri · Veri Temizleme · Gruplama · Raporlama
+> https://youtu.be/-oOm-2WoX5I
 
 ---
 
